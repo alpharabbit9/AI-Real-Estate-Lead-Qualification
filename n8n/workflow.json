@@ -1,0 +1,322 @@
+{
+  "name": "Real Estate Lead Qualification AI",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "qualify-lead",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "node-01-webhook",
+      "name": "Webhook — Receive Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 340],
+      "webhookId": "real-estate-lead-qualification"
+    },
+
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1",
+              "name": "name",
+              "value": "={{ $json.body?.name ?? $json.name ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "f2",
+              "name": "email",
+              "value": "={{ $json.body?.email ?? $json.email ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "f3",
+              "name": "phone",
+              "value": "={{ $json.body?.phone ?? $json.phone ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "f4",
+              "name": "location",
+              "value": "={{ $json.body?.location ?? $json.location ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "f5",
+              "name": "budget",
+              "value": "={{ $json.body?.budget ?? $json.budget ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "f6",
+              "name": "category",
+              "value": "={{ $json.body?.category ?? $json.category ?? 'Real Estate' }}",
+              "type": "string"
+            },
+            {
+              "id": "f7",
+              "name": "message",
+              "value": "={{ $json.body?.message ?? $json.message ?? '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-02-set",
+      "name": "Set — Normalize Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [480, 340]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const lead = $input.first().json;\n\nconst systemPrompt = `You are an AI Lead Qualification and Logging Engine for automated business workflows.\n\nYour job is to:\nAnalyze incoming leads\nScore and classify them\nStructure results for automation\nPrepare data for Google Sheets storage\n\nYou do NOT chat.\nYou do NOT explain.\nYou ONLY return structured JSON.\n\nCONTEXT\n\nBusinesses receive leads from websites, ads, and forms.\nMost leads are not ready to convert.\nManual sorting wastes time and reduces sales speed.\nYour system ensures:\nHigh-intent leads are prioritized instantly\nLow-intent leads are stored but not prioritized\nEvery lead is structured for Google Sheets logging\n\nLEAD EVALUATION FRAMEWORK\n\nEvaluate based on intent signals:\n\nHIGH INTENT SIGNALS\nClear request (buy / hire / book / need now)\nBudget provided\nShort timeline (0-3 months)\nSpecific requirements mentioned\nAction-oriented language\n\nMEDIUM INTENT SIGNALS\nSome interest shown\nPartial budget or unclear range\nTimeline 3-6 months\nNeeds more information\n\nLOW INTENT SIGNALS\nJust browsing\nNo budget\nNo timeline\nVague inquiry\nLong-term interest (6+ months)\n\nSCORING RULE\n\nReturn a score from 1-10:\n9-10 = HOT (ready to convert)\n7-8 = HIGH (strong intent)\n5-6 = MEDIUM (needs nurturing)\n1-4 = LOW (not qualified)\n\nOUTPUT FORMAT (STRICT JSON ONLY)\n\nReturn exactly this structure:\n\n{\"lead_score\":0,\"priority\":\"\",\"buyer_intent\":\"\",\"urgency\":\"\",\"estimated_value\":\"\",\"summary\":\"\",\"recommended_action\":\"\",\"agent_message\":\"\",\"google_sheets_row\":{\"name\":\"\",\"email\":\"\",\"phone\":\"\",\"location\":\"\",\"budget\":\"\",\"category\":\"\",\"lead_score\":0,\"priority\":\"\",\"urgency\":\"\",\"summary\":\"\",\"recommended_action\":\"\"}}\n\nFIELD DEFINITIONS\nlead_score: Integer 1-10 only\npriority: HOT / HIGH / MEDIUM / LOW\nbuyer_intent: One clear sentence describing intent\nurgency: Immediate / 1-3 Months / 3-6 Months / Unknown\nestimated_value: Low / Medium / High\nsummary: Max 20-25 words describing lead quality\nrecommended_action: Short instruction max 10-12 words\nagent_message: Internal note for sales team max 15 words\n\nSTRICT RULES\nOutput ONLY valid JSON\nNo markdown\nNo explanations\nNo extra text\nNever hallucinate missing data\nIf data is missing leave empty string\nKeep structure identical every time`;\n\nconst userContent = `Name: ${lead.name}\\nEmail: ${lead.email}\\nPhone: ${lead.phone}\\nLocation: ${lead.location}\\nBudget: ${lead.budget}\\nCategory: ${lead.category}\\nMessage: ${lead.message}`;\n\nconst groqBody = {\n  model: 'llama-3.3-70b-versatile',\n  messages: [\n    { role: 'system', content: systemPrompt },\n    { role: 'user', content: userContent }\n  ],\n  temperature: 0.1,\n  max_tokens: 800,\n  response_format: { type: 'json_object' }\n};\n\nreturn [{\n  json: {\n    name: lead.name,\n    email: lead.email,\n    phone: lead.phone,\n    location: lead.location,\n    budget: lead.budget,\n    category: lead.category,\n    message: lead.message,\n    groq_body: groqBody\n  }\n}];"
+      },
+      "id": "node-03-build",
+      "name": "Code — Build Groq Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 340]
+    },
+
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_GROQ_API_KEY_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ JSON.stringify($json.groq_body) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false
+            }
+          }
+        }
+      },
+      "id": "node-04-groq",
+      "name": "HTTP Request — Groq AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 340]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst lead = $('Set — Normalize Input').first().json;\n\nlet qualification;\ntry {\n  const content = response.choices[0].message.content;\n  qualification = typeof content === 'string' ? JSON.parse(content) : content;\n} catch(e) {\n  throw new Error('Failed to parse Groq response: ' + e.message);\n}\n\nconst timestamp = new Date().toISOString();\n\nreturn [{\n  json: {\n    // Flat fields (used by IF node, email, Respond)\n    lead_score:         qualification.lead_score,\n    priority:           qualification.priority,\n    buyer_intent:       qualification.buyer_intent,\n    urgency:            qualification.urgency,\n    estimated_value:    qualification.estimated_value,\n    summary:            qualification.summary,\n    recommended_action: qualification.recommended_action,\n    agent_message:      qualification.agent_message,\n    // Lead identity\n    name:     lead.name,\n    email:    lead.email,\n    phone:    lead.phone,\n    location: lead.location,\n    budget:   lead.budget,\n    category: lead.category,\n    message:  lead.message,\n    timestamp,\n    // Full qualification for webhook response\n    qualification\n  }\n}];"
+      },
+      "id": "node-05-parse",
+      "name": "Code — Parse Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 340]
+    },
+
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, lead: { name: $json.name, email: $json.email, phone: $json.phone, location: $json.location, budget: $json.budget, category: $json.category }, qualification: $json.qualification }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "node-06-respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1440, 340]
+    },
+
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_GOOGLE_SHEETS_DOC_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp":          "={{ $json.timestamp }}",
+            "Name":               "={{ $json.name }}",
+            "Email":              "={{ $json.email }}",
+            "Phone":              "={{ $json.phone }}",
+            "Location":           "={{ $json.location }}",
+            "Budget":             "={{ $json.budget }}",
+            "Category":           "={{ $json.category }}",
+            "Lead Score":         "={{ $json.lead_score }}",
+            "Priority":           "={{ $json.priority }}",
+            "Urgency":            "={{ $json.urgency }}",
+            "Buyer Intent":       "={{ $json.buyer_intent }}",
+            "Summary":            "={{ $json.summary }}",
+            "Recommended Action": "={{ $json.recommended_action }}",
+            "Agent Message":      "={{ $json.agent_message }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "node-07-sheets",
+      "name": "Google Sheets — Log Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1680, 340],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-credential",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-hot",
+              "leftValue": "={{ $json.priority }}",
+              "rightValue": "HOT",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "cond-high",
+              "leftValue": "={{ $json.priority }}",
+              "rightValue": "HIGH",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "any"
+        }
+      },
+      "id": "node-08-if",
+      "name": "IF — Hot or High Priority?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1920, 340]
+    },
+
+    {
+      "parameters": {
+        "sendTo": "rifatahm033@gmail.com",
+        "subject": "={{ $json.priority === 'HOT' ? '🔥 HOT LEAD' : '⚡ HIGH Priority Lead' }}: {{ $json.name }} — Score {{ $json.lead_score }}/10",
+        "emailType": "html",
+        "message": "=<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #0a0a0a; color: #fff; border-radius: 12px; overflow: hidden;\">\n\n  <!-- Header -->\n  <div style=\"background: {{ $json.priority === 'HOT' ? '#FF4444' : '#FF8C00' }}; padding: 24px 32px;\">\n    <div style=\"font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.85; margin-bottom: 4px;\">{{ $json.priority }} PRIORITY LEAD</div>\n    <div style=\"font-size: 26px; font-weight: 800;\">{{ $json.name }}</div>\n    <div style=\"font-size: 14px; opacity: 0.8; margin-top: 4px;\">Lead Score: {{ $json.lead_score }}/10 &nbsp;·&nbsp; {{ $json.urgency }}</div>\n  </div>\n\n  <!-- Body -->\n  <div style=\"padding: 28px 32px;\">\n\n    <!-- Contact -->\n    <div style=\"margin-bottom: 24px;\">\n      <div style=\"font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); margin-bottom: 10px; font-weight: 600;\">Contact Details</div>\n      <table style=\"width: 100%; border-collapse: collapse;\">\n        <tr>\n          <td style=\"padding: 6px 0; color: rgba(255,255,255,0.5); font-size: 12px; width: 120px;\">Email</td>\n          <td style=\"padding: 6px 0; color: #fff; font-size: 12px;\"><a href=\"mailto:{{ $json.email }}\" style=\"color: #00E5FF; text-decoration: none;\">{{ $json.email }}</a></td>\n        </tr>\n        <tr>\n          <td style=\"padding: 6px 0; color: rgba(255,255,255,0.5); font-size: 12px;\">Phone</td>\n          <td style=\"padding: 6px 0; color: #fff; font-size: 12px;\">{{ $json.phone || 'Not provided' }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 6px 0; color: rgba(255,255,255,0.5); font-size: 12px;\">Location</td>\n          <td style=\"padding: 6px 0; color: #fff; font-size: 12px;\">{{ $json.location }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 6px 0; color: rgba(255,255,255,0.5); font-size: 12px;\">Budget</td>\n          <td style=\"padding: 6px 0; color: #fff; font-size: 12px;\">{{ $json.budget }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 6px 0; color: rgba(255,255,255,0.5); font-size: 12px;\">Category</td>\n          <td style=\"padding: 6px 0; color: #fff; font-size: 12px;\">{{ $json.category }}</td>\n        </tr>\n      </table>\n    </div>\n\n    <!-- AI Analysis -->\n    <div style=\"background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 16px; margin-bottom: 16px;\">\n      <div style=\"font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); margin-bottom: 10px; font-weight: 600;\">AI Qualification</div>\n      <div style=\"margin-bottom: 10px;\">\n        <div style=\"font-size: 10px; color: rgba(255,255,255,0.4); margin-bottom: 3px;\">BUYER INTENT</div>\n        <div style=\"font-size: 13px; color: rgba(255,255,255,0.85);\">{{ $json.buyer_intent }}</div>\n      </div>\n      <div>\n        <div style=\"font-size: 10px; color: rgba(255,255,255,0.4); margin-bottom: 3px;\">SUMMARY</div>\n        <div style=\"font-size: 13px; color: rgba(255,255,255,0.85);\">{{ $json.summary }}</div>\n      </div>\n    </div>\n\n    <!-- Action Box -->\n    <div style=\"background: {{ $json.priority === 'HOT' ? 'rgba(255,68,68,0.12)' : 'rgba(255,140,0,0.12)' }}; border: 1px solid {{ $json.priority === 'HOT' ? 'rgba(255,68,68,0.3)' : 'rgba(255,140,0,0.3)' }}; border-radius: 10px; padding: 16px; margin-bottom: 16px;\">\n      <div style=\"font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); margin-bottom: 6px; font-weight: 600;\">Recommended Action</div>\n      <div style=\"font-size: 16px; font-weight: 700; color: #fff;\">{{ $json.recommended_action }}</div>\n    </div>\n\n    <!-- Agent Note -->\n    <div style=\"background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px 14px;\">\n      <span style=\"font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.3);\">Agent Note: </span>\n      <span style=\"font-size: 12px; color: rgba(255,255,255,0.6);\">{{ $json.agent_message }}</span>\n    </div>\n\n    <!-- Message -->\n    <div style=\"margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06);\">\n      <div style=\"font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); margin-bottom: 8px;\">Original Message</div>\n      <div style=\"font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6;\">{{ $json.message }}</div>\n    </div>\n  </div>\n\n  <!-- Footer -->\n  <div style=\"padding: 16px 32px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 10px; color: rgba(255,255,255,0.2); text-align: center;\">\n    LeadQual.ai &nbsp;·&nbsp; {{ $json.timestamp }} &nbsp;·&nbsp; Logged to Google Sheets\n  </div>\n</div>",
+        "options": {}
+      },
+      "id": "node-09-gmail",
+      "name": "Gmail — Notify Agent",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2160, 200],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-credential",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+
+    {
+      "parameters": {},
+      "id": "node-10-noop",
+      "name": "No Action — Low/Medium",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2160, 480]
+    }
+  ],
+
+  "connections": {
+    "Webhook — Receive Lead": {
+      "main": [
+        [{ "node": "Set — Normalize Input", "type": "main", "index": 0 }]
+      ]
+    },
+    "Set — Normalize Input": {
+      "main": [
+        [{ "node": "Code — Build Groq Request", "type": "main", "index": 0 }]
+      ]
+    },
+    "Code — Build Groq Request": {
+      "main": [
+        [{ "node": "HTTP Request — Groq AI", "type": "main", "index": 0 }]
+      ]
+    },
+    "HTTP Request — Groq AI": {
+      "main": [
+        [{ "node": "Code — Parse Response", "type": "main", "index": 0 }]
+      ]
+    },
+    "Code — Parse Response": {
+      "main": [
+        [{ "node": "Respond to Webhook", "type": "main", "index": 0 }]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [{ "node": "Google Sheets — Log Lead", "type": "main", "index": 0 }]
+      ]
+    },
+    "Google Sheets — Log Lead": {
+      "main": [
+        [{ "node": "IF — Hot or High Priority?", "type": "main", "index": 0 }]
+      ]
+    },
+    "IF — Hot or High Priority?": {
+      "main": [
+        [{ "node": "Gmail — Notify Agent",    "type": "main", "index": 0 }],
+        [{ "node": "No Action — Low/Medium",  "type": "main", "index": 0 }]
+      ]
+    }
+  },
+
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+
+  "staticData": null,
+  "tags": ["real-estate", "lead-qualification", "groq", "google-sheets"],
+  "pinData": {}
+}

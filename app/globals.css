@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 10%;
+    --input: 0 0% 10%;
+    --ring: 187 100% 50%;
+    --radius: 24px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-color: #080808;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: rgba(0, 229, 255, 0.2);
+    color: #00E5FF;
+  }
+}
+
+@layer utilities {
+  /* Glass card */
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Accent glow */
+  .accent-glow {
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+  }
+
+  /* Premium card */
+  .card-premium {
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+  }
+
+  /* Dot pattern background */
+  .bg-grid {
+    background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: 0 0;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 30%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 30%, transparent 100%);
+  }
+
+  /* Ambient glow overlay */
+  .bg-glow {
+    background: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(0,229,255,0.06) 0%, transparent 70%);
+  }
+
+  /* Score bar */
+  .score-bar-hot    { background: linear-gradient(90deg, #FF4444, #FF6B6B); }
+  .score-bar-high   { background: linear-gradient(90deg, #FF8C00, #FFB347); }
+  .score-bar-medium { background: linear-gradient(90deg, #FFD700, #FFF176); }
+  .score-bar-low    { background: linear-gradient(90deg, #4B5563, #6B7280); }
+
+  /* Priority badge */
+  .badge-hot    { @apply bg-red-500/15 text-red-400 border border-red-500/30; }
+  .badge-high   { @apply bg-orange-500/15 text-orange-400 border border-orange-500/30; }
+  .badge-medium { @apply bg-yellow-500/15 text-yellow-400 border border-yellow-500/30; }
+  .badge-low    { @apply bg-gray-500/15 text-gray-400 border border-gray-500/30; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 100px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  /* Shimmer loading */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255,255,255,0.02) 0%,
+      rgba(255,255,255,0.06) 50%,
+      rgba(255,255,255,0.02) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s linear infinite;
+  }
+}
