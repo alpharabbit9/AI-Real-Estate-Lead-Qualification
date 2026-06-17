@@ -203,6 +203,42 @@ async function qualifyWithGroq(lead: LeadInput): Promise<QualificationResult> {
   return JSON.parse(content) as QualificationResult;
 }
 
+async function saveToSupabase(lead: LeadInput, qualification: QualificationResult): Promise<string | null> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  if (!supabaseUrl.startsWith("https://")) return "SUPABASE_URL not set";
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  const key = serviceKey && !serviceKey.startsWith("your_") ? serviceKey : anonKey;
+  if (!key) return "No Supabase key available";
+
+  try {
+    const { createClient } = await import("@supabase/supabase-js");
+    const client = createClient(supabaseUrl, key);
+    const { error } = await client.from("leads").insert({ ...lead, qualification, status: "qualified" });
+    if (error) {
+      console.error("[qualify] Supabase insert error:", error.message, error.code);
+      return error.message;
+    }
+    return null;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[qualify] Supabase insert failed:", msg);
+    return msg;
+  }
+}
+
+function fireAndForgetN8N(lead: LeadInput, qualification: QualificationResult) {
+  const n8nUrl = process.env.N8N_WEBHOOK_URL;
+  if (!n8nUrl || !n8nUrl.startsWith("https://")) return;
+  // Fire async — don't block the response. n8n handles Sheets + email.
+  fetch(n8nUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...lead, qualification }),
+  }).catch((err) => console.error("[n8n] webhook fire failed:", err));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -223,61 +259,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If n8n is configured — forward the full request through the automation pipeline
-    // (n8n handles Groq AI + Google Sheets logging + email notification)
-    const n8nUrl = process.env.N8N_WEBHOOK_URL;
-    if (n8nUrl && n8nUrl.startsWith("https://")) {
-      const n8nRes = await fetch(n8nUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(lead),
-      });
-
-      if (!n8nRes.ok) {
-        const errText = await n8nRes.text();
-        throw new Error(`n8n webhook error: ${n8nRes.status} — ${errText}`);
-      }
-
-      const n8nData = await n8nRes.json();
-      return NextResponse.json({
-        success: true,
-        qualification: n8nData.qualification,
-        lead,
-      });
-    }
-
-    // Fallback: call Groq directly (no Google Sheets, no email)
+    // Step 1: Qualify with Groq (or mock fallback) — instant response
     let qualification: QualificationResult;
-
     try {
-      if (process.env.GROQ_API_KEY) {
-        qualification = await qualifyWithGroq(lead);
-      } else {
-        qualification = mockQualify(lead);
-      }
+      qualification = process.env.GROQ_API_KEY
+        ? await qualifyWithGroq(lead)
+        : mockQualify(lead);
     } catch {
       qualification = mockQualify(lead);
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-    const supabaseReady = supabaseUrl.startsWith("https://") && supabaseKey.length > 10;
+    // Step 2: Save to Supabase
+    await saveToSupabase(lead, qualification);
 
-    if (supabaseReady) {
-      const { createClient } = await import("@supabase/supabase-js");
-      const adminClient = createClient(supabaseUrl, supabaseKey);
-      await adminClient.from("leads").insert({
-        ...lead,
-        qualification,
-        status: "qualified",
-      });
-    }
+    // Step 3: Trigger n8n in background (Google Sheets + email alert) — non-blocking
+    fireAndForgetN8N(lead, qualification);
 
     return NextResponse.json({ success: true, qualification, lead });
   } catch (error) {
-    console.error("[qualify] error:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[qualify] error:", msg);
     return NextResponse.json(
-      { error: "Qualification failed. Please try again." },
+      { error: "Qualification failed.", detail: msg },
       { status: 500 }
     );
   }

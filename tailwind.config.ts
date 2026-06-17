@@ -23,7 +23,7 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         accent: {
-          DEFAULT: "#00E5FF",
+          DEFAULT: "#E2E8F0",
           foreground: "#000000",
         },
         primary: {

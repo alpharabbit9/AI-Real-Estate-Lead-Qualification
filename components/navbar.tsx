@@ -20,11 +20,11 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-7 h-7 rounded-lg bg-[#00E5FF]/15 border border-[#00E5FF]/30 flex items-center justify-center">
-            <Building2 size={14} className="text-[#00E5FF]" />
+          <div className="w-7 h-7 rounded-lg bg-[#E2E8F0]/15 border border-[#E2E8F0]/30 flex items-center justify-center">
+            <Building2 size={14} className="text-[#E2E8F0]" />
           </div>
           <span className="text-sm font-semibold text-white tracking-tight">
-            LeadQual<span className="text-[#00E5FF]">.ai</span>
+            LeadQual<span className="text-[#E2E8F0]">.ai</span>
           </span>
         </Link>
 
@@ -59,7 +59,7 @@ export function Navbar() {
 
         {/* Status pill */}
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/8 bg-white/3">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#00E5FF] animate-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-[#E2E8F0] animate-pulse" />
           <span className="text-[10px] text-white/40 uppercase tracking-wider hidden sm:block">AI Online</span>
         </div>
       </div>

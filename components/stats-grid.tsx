@@ -13,7 +13,7 @@ interface StatCardProps {
   delay?: number;
 }
 
-function StatCard({ label, value, sub, icon, color = "#00E5FF", delay = 0 }: StatCardProps) {
+function StatCard({ label, value, sub, icon, color = "#E2E8F0", delay = 0 }: StatCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -55,7 +55,7 @@ export function StatsGrid({ stats }: StatsGridProps) {
         label="Total Leads"
         value={stats.total}
         icon={<Users size={16} />}
-        color="#00E5FF"
+        color="#E2E8F0"
         delay={0}
       />
       <StatCard
@@ -67,7 +67,7 @@ export function StatsGrid({ stats }: StatsGridProps) {
         delay={0.05}
       />
       <StatCard
-        label="High Potential"
+        label="Qualified Leads"
         value={stats.high}
         icon={<TrendingUp size={16} />}
         color="#FF8C00"
@@ -78,7 +78,7 @@ export function StatsGrid({ stats }: StatsGridProps) {
         value={stats.avgScore > 0 ? stats.avgScore.toFixed(1) : "—"}
         sub="/ 10"
         icon={<BarChart3 size={16} />}
-        color="#00E5FF"
+        color="#E2E8F0"
         delay={0.15}
       />
     </div>
