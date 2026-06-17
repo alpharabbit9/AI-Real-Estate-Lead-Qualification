@@ -12,7 +12,7 @@ const badgeVariants = cva(
         high:   "bg-orange-500/15 text-orange-400 border border-orange-500/30",
         medium: "bg-yellow-500/15 text-yellow-400 border border-yellow-500/30",
         low:    "bg-gray-500/15 text-gray-400 border border-gray-500/30",
-        accent: "bg-[#E2E8F0]/15 text-[#E2E8F0] border border-[#E2E8F0]/30",
+        accent: "bg-[#4F46E5]/15 text-[#4F46E5] border border-[#4F46E5]/30",
         outline:"border border-white/10 text-white/60",
       },
     },

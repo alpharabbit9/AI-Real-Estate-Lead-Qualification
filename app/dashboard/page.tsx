@@ -58,8 +58,8 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-[#E2E8F0]/10 border border-[#E2E8F0]/20">
-            <LayoutDashboard size={16} className="text-[#E2E8F0]" />
+          <div className="p-2 rounded-xl bg-[#4F46E5]/10 border border-[#4F46E5]/20">
+            <LayoutDashboard size={16} className="text-[#4F46E5]" />
           </div>
           <div>
             <h1 className="text-lg font-semibold text-white">Dashboard</h1>
@@ -147,7 +147,7 @@ export default function DashboardPage() {
 
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-5">
-              <TrendingUp size={14} className="text-[#E2E8F0]" />
+              <TrendingUp size={14} className="text-[#4F46E5]" />
               <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">Recent Activity</h3>
             </div>
             {leads.length === 0 ? (

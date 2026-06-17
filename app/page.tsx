@@ -32,7 +32,7 @@ export default function HomePage() {
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1]">
           Qualify Every Lead
           <br />
-          <span className="text-[#E2E8F0]">Instantly.</span>
+          <span className="text-[#4F46E5]">Instantly.</span>
         </h1>
 
         <p className="text-base sm:text-lg text-white/50 max-w-2xl mx-auto leading-relaxed">
@@ -49,7 +49,7 @@ export default function HomePage() {
               className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/8 bg-white/3 text-sm text-white/60"
               title={desc}
             >
-              <Icon size={13} className="text-[#E2E8F0]" />
+              <Icon size={13} className="text-[#4F46E5]" />
               {label}
             </div>
           ))}
@@ -61,8 +61,8 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto">
           {/* Section header */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-xl bg-[#E2E8F0]/10 border border-[#E2E8F0]/20">
-              <Sparkles size={16} className="text-[#E2E8F0]" />
+            <div className="p-2 rounded-xl bg-[#4F46E5]/10 border border-[#4F46E5]/20">
+              <Sparkles size={16} className="text-[#4F46E5]" />
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">New Lead Qualification</h2>
@@ -93,7 +93,7 @@ export default function HomePage() {
                 {step}
               </div>
               <div className="relative">
-                <div className="text-[#E2E8F0] text-xs font-mono mb-2">{step}</div>
+                <div className="text-[#4F46E5] text-xs font-mono mb-2">{step}</div>
                 <h3 className="text-sm font-semibold text-white mb-2">{title}</h3>
                 <p className="text-xs text-white/40 leading-relaxed">{desc}</p>
               </div>

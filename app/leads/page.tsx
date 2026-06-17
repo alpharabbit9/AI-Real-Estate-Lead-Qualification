@@ -86,8 +86,8 @@ export default function LeadsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-[#E2E8F0]/10 border border-[#E2E8F0]/20">
-            <Users size={16} className="text-[#E2E8F0]" />
+          <div className="p-2 rounded-xl bg-[#4F46E5]/10 border border-[#4F46E5]/20">
+            <Users size={16} className="text-[#4F46E5]" />
           </div>
           <div>
             <h1 className="text-lg font-semibold text-white">All Leads</h1>
